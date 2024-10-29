@@ -4,8 +4,6 @@ import static fj.P.weakMemo;
 
 /**
  * A product-7.
- *
- * @version %build.number%
  */
 @SuppressWarnings("UnnecessaryFullyQualifiedName")
 public abstract class P7<A, B, C, D, E, F, G> {
@@ -330,7 +328,7 @@ public abstract class P7<A, B, C, D, E, F, G> {
    * @return the 1-product projection over the first element.
    */
   public final P1<A> _1_() {
-    return F1Functions.lazy(P7.<A, B, C, D, E, F, G>__1()).f(this);
+    return P7.<A, B, C, D, E, F, G>__1().lazy().f(this);
   }
 
   /**
@@ -339,7 +337,7 @@ public abstract class P7<A, B, C, D, E, F, G> {
    * @return the 1-product projection over the second element.
    */
   public final P1<B> _2_() {
-    return F1Functions.lazy(P7.<A, B, C, D, E, F, G>__2()).f(this);
+    return P7.<A, B, C, D, E, F, G>__2().lazy().f(this);
   }
 
   /**
@@ -348,7 +346,7 @@ public abstract class P7<A, B, C, D, E, F, G> {
    * @return the 1-product projection over the third element.
    */
   public final P1<C> _3_() {
-    return F1Functions.lazy(P7.<A, B, C, D, E, F, G>__3()).f(this);
+    return P7.<A, B, C, D, E, F, G>__3().lazy().f(this);
   }
 
   /**
@@ -357,7 +355,7 @@ public abstract class P7<A, B, C, D, E, F, G> {
    * @return the 1-product projection over the fourth element.
    */
   public final P1<D> _4_() {
-    return F1Functions.lazy(P7.<A, B, C, D, E, F, G>__4()).f(this);
+    return P7.<A, B, C, D, E, F, G>__4().lazy().f(this);
   }
 
   /**
@@ -366,7 +364,7 @@ public abstract class P7<A, B, C, D, E, F, G> {
    * @return the 1-product projection over the fifth element.
    */
   public final P1<E> _5_() {
-    return F1Functions.lazy(P7.<A, B, C, D, E, F, G>__5()).f(this);
+    return P7.<A, B, C, D, E, F, G>__5().lazy().f(this);
   }
 
   /**
@@ -375,7 +373,7 @@ public abstract class P7<A, B, C, D, E, F, G> {
    * @return the 1-product projection over the sixth element.
    */
   public final P1<F> _6_() {
-    return F1Functions.lazy(P7.<A, B, C, D, E, F, G>__6()).f(this);
+    return P7.<A, B, C, D, E, F, G>__6().lazy().f(this);
   }
 
   /**
@@ -384,7 +382,7 @@ public abstract class P7<A, B, C, D, E, F, G> {
    * @return the 1-product projection over the seventh element.
    */
   public final P1<G> _7_() {
-    return F1Functions.lazy(P7.<A, B, C, D, E, F, G>__7()).f(this);
+    return P7.<A, B, C, D, E, F, G>__7().lazy().f(this);
   }
 
   /**

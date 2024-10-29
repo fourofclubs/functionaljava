@@ -1,20 +1,12 @@
 package fj;
 
-import fj.data.Array;
-import fj.data.Either;
-import fj.data.List;
-import fj.data.Option;
-import fj.data.Stream;
-import fj.data.Validation;
+import fj.data.*;
 
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 
 import static fj.P.p;
-import static fj.Unit.unit;
-//import fj.data.*;
-
 
 public abstract class P1<A> implements F0<A> {
 
@@ -37,18 +29,6 @@ public abstract class P1<A> implements F0<A> {
      */
     public static <A> F<P1<A>, A> __1() {
         return P1::_1;
-    }
-
-    /**
-     * Promote any function to a transformation between P1s.
-     *
-     * @deprecated As of release 4.5, use {@link #map_}
-     * @param f A function to promote to a transformation between P1s.
-     * @return A function promoted to operate on P1s.
-     */
-    @Deprecated
-    public static <A, B> F<P1<A>, P1<B>> fmap(final F<A, B> f) {
-        return map_(f);
     }
 
 	/**
@@ -108,7 +88,7 @@ public abstract class P1<A> implements F0<A> {
 	 * Binds the given function to the values in the given P1s with a final join.
 	 */
 	public final <B, C> P1<C> bind(final P1<B> cb, final F2<A, B, C> f) {
-		return bind(cb, F2W.lift(f).curry());
+		return bind(cb, f.curry());
 	}
 
     /**
@@ -243,9 +223,8 @@ public abstract class P1<A> implements F0<A> {
       }
 
     /**
-     * @deprecated since 4.7. Use {@link P1#weakMemo()} instead.
+     * Wrap the memoized value into a <code>WeakReference</code>.
      */
-    @Deprecated
     public final P1<A> memo() {
         return weakMemo();
     }
@@ -266,22 +245,6 @@ public abstract class P1<A> implements F0<A> {
      * Like <code>memo</code>, but the memoized value is wrapped into a <code>SoftReference</code>
      */
     public P1<A> softMemo() { return new SoftReferenceMemo<>(this); }
-
-    /**
-     * @deprecated since 4.7. Use {@link P#weakMemo(F0)} instead.
-     */
-    @Deprecated
-    public static <A> P1<A> memo(F<Unit, A> f) {
-        return P.weakMemo(() -> f.f(unit()));
-    }
-
-  /**
-   * @deprecated since 4.7. Use {@link P#weakMemo(F0)} instead.
-   */
-  @Deprecated
-  public static <A> P1<A> memo(F0<A> f) {
-		return P.weakMemo(f);
-	}
 
     static final class Memo<A> extends P1<A> {
       private volatile F0<A> fa;

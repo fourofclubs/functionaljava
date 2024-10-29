@@ -4,20 +4,33 @@ archivesBaseName = "${project.projectName}-${project.name}"
 apply plugin: 'scala'
 
 ext {
-    scalaVersion = "2.11.12"
-    scalacheckScalaVersion = "2.11"
+//    scalaVersion = "2.11.12"
+//    scalacheckScalaVersion = "2.11"
+    scalaVersion = "2.12.15"
+    scalacheckScalaVersion = "2.12"
+//    scalaVersion = "2.13.8"
+//    scalacheckScalaVersion = "2.13"
+
     scalacheckVersion = "1.12.6"
+//    scalacheckVersion = "1.13.5"
+//    scalacheckVersion = "1.14.0"
+//    scalacheckVersion = "1.15.2"
+
     signModule = true
 }
 
 dependencies {
-    compile project(":core")
-    compile "org.scala-lang:scala-library:$scalaVersion"
-    compile "org.scalacheck:scalacheck_$scalacheckScalaVersion:$scalacheckVersion"
+    api project(":core")
+    api "org.scala-lang:scala-library:$scalaVersion"
+    api "org.scalacheck:scalacheck_$scalacheckScalaVersion:$scalacheckVersion"
 
-    testCompile junitCompile
-    testRuntime junitRuntime
+    testImplementation junitCompile
+    testRuntimeOnly junitRuntime
+}
+
+tasks.withType(ScalaCompile) {
+    scalaCompileOptions.additionalParameters = ["-feature", "-language:implicitConversions", "-language:postfixOps"]
 }
 
 performSigning(signingEnabled, signModule)
-configureUpload(signingEnabled, signModule)
+configureUpload(signingEnabled, signModule, project.uploadModule)

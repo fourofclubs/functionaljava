@@ -17,8 +17,6 @@ import java.math.BigInteger;
 
 /**
  * Produces a hash code for an object which should attempt uniqueness.
- *
- * @version %build.number%
  */
 public final class Hash<A> {
   private final F<A, Integer> f;
@@ -163,7 +161,12 @@ public final class Hash<A> {
     return hash(e -> e.isLeft() ? ha.hash(e.left().value()) : hb.hash(e.right().value()));
   }
 
-  /**
+    public static <A, B, C> Hash<Either3<A, B, C>> either3Hash(final Hash<A> ha, final Hash<B> hb, final Hash<C> hc) {
+        return hash(e -> e.either(a -> ha.hash(a), b -> hb.hash(b), c -> hc.hash(c)));
+    }
+
+
+    /**
    * A hash instance for the {@link Result} type.
    *
    * @param ha Hash the <code>Result</code> value.

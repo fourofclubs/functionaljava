@@ -12,7 +12,8 @@ import static fj.data.IOFunctions.*;
 import static fj.data.Stream.cons;
 import static fj.data.Stream.nil_;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.fail;
 
 public class IOFunctionsTest {
 
@@ -33,8 +34,8 @@ public class IOFunctionsTest {
         r -> () -> new BufferedReader(r).readLine()
     );
 
-    Assert.assertThat(bracketed.run(), is("Read OK"));
-    Assert.assertThat(closed.get(), is(true));
+    assertThat(bracketed.run(), is("Read OK"));
+    assertThat(closed.get(), is(true));
   }
 
   @Test
@@ -59,9 +60,9 @@ public class IOFunctionsTest {
       bracketed.run();
       fail("Exception expected");
     } catch (IllegalArgumentException e) {
-      Assert.assertThat(e.getMessage(), is("OoO"));
+      assertThat(e.getMessage(), is("OoO"));
     }
-    Assert.assertThat(closed.get(), is(true));
+    assertThat(closed.get(), is(true));
   }
 
   @Test
@@ -73,7 +74,7 @@ public class IOFunctionsTest {
     System.setOut(new PrintStream(outContent));
     stream.traverseIO(IOFunctions::stdoutPrint).run();
     System.setOut(originalOut);
-    assertThat(outContent.toString(), is("foobar3bar2foo1"));
+    assertThat(outContent.toString(), is("foo1bar2foobar3"));
   }
 
   @Test
@@ -107,7 +108,8 @@ public class IOFunctionsTest {
   @Test
   public void testLift() throws IOException {
     final IO<String> readName = () -> new BufferedReader(new StringReader("foo")).readLine();
-    final F<String, IO<String>> upperCaseAndPrint = F1Functions.<String, IO<String>, String>o(this::println).f(String::toUpperCase);
+    F<String, IO<String>> f = this::println;
+    final F<String, IO<String>> upperCaseAndPrint = f.<String>o().f(String::toUpperCase);
     final IO<String> readAndPrintUpperCasedName = IOFunctions.bind(readName, upperCaseAndPrint);
     assertThat(readAndPrintUpperCasedName.run(), is("FOO"));
   }

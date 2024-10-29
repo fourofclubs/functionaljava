@@ -1,29 +1,15 @@
 package fj;
 
-import fj.data.Array;
-import fj.data.Either;
-import fj.data.List;
-import fj.data.Natural;
-import fj.data.NonEmptyList;
-import fj.data.Option;
-import fj.data.Set;
-import fj.data.Stream;
-import fj.data.Validation;
+import fj.data.*;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
+import java.math.*;
 import java.util.Comparator;
 
-import static fj.Function.apply;
-import static fj.Function.compose;
-import static fj.Function.curry;
-import static fj.Semigroup.semigroup;
+import static fj.Function.*;
 import static fj.Semigroup.semigroupDef;
 
 /**
  * Tests for ordering between two objects.
- *
- * @version %build.number%
  */
 public final class Ord<A> {
 
@@ -542,6 +528,37 @@ public final class Ord<A> {
   }
 
   /**
+   * Return a seq ord using the given value ord.
+   *
+   * @param ord the given value ord
+   * @param <A> the type of the seq value
+   * @return the seq ord
+   */
+  public static <A> Ord<Seq<A>> seqOrd(final Ord<A> ord) {
+    return ordDef((l1, l2) -> {
+      Seq<A> x1 = l1;
+      Seq<A> x2 = l2;
+
+      while (x1.isNotEmpty() && x2.isNotEmpty()) {
+        final Ordering o = ord.compare(x1.head(), x2.head());
+        if (o == Ordering.LT || o == Ordering.GT) {
+          return o;
+        }
+        x1 = x1.tail();
+        x2 = x2.tail();
+      }
+
+      if (x1.isEmpty() && x2.isEmpty()) {
+        return Ordering.EQ;
+      } else if (x1.isEmpty()) {
+        return Ordering.LT;
+      } else {
+        return Ordering.GT;
+      }
+    });
+  }
+
+  /**
    * An order instance for the {@link NonEmptyList} type.
    *
    * @param oa Order across the elements of the non-empty list.
@@ -666,44 +683,6 @@ public final class Ord<A> {
    */
   public static <A extends Comparable<A>> Ord<A> comparableOrd() {
     return ordDef((a1, a2) -> Ordering.fromInt(a1.compareTo(a2)));
-  }
-
-  /**
-   * An order instance that uses {@link Object#hashCode()} for computing the order and equality,
-   * thus objects returning the same hashCode are considered to be equals.
-   * This is not safe and therefore this method is deprecated.
-   *
-   * @return An order instance that is based on {@link Object#hashCode()}.
-   *
-   * @deprecated As of release 4.7.
-   */
-  @Deprecated
-  public static <A> Ord<A> hashOrd() {
-    return ordDef(a -> {
-      int aHash = a.hashCode();
-      return a2 -> Ordering.fromInt(Integer.valueOf(aHash).compareTo(a2.hashCode()));
-    });
-  }
-
-  /**
-   * An order instance that uses {@link Object#hashCode()} and {@link Object#equals} for computing
-   * the order and equality. First the hashCode is compared, if this is equal, objects are compared
-   * using {@link Object#equals}.
-   * WARNING: This ordering violate antisymmetry on hash collisions.
-   *
-   * @return An order instance that is based on {@link Object#hashCode()} and {@link Object#equals}.
-   *
-   * @deprecated As of release 4.7.
-   */
-  @Deprecated
-  public static <A> Ord<A> hashEqualsOrd() {
-    return ordDef(a -> {
-      int aHash = a.hashCode();
-      return a2 -> {
-        final int a2Hash = a2.hashCode();
-        return aHash < a2Hash ? Ordering.LT : aHash == a2Hash && a.equals(a2) ? Ordering.EQ : Ordering.GT;
-      };
-    });
   }
 
   class OrdComparator implements Comparator<A> {

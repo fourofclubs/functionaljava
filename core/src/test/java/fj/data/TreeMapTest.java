@@ -16,12 +16,9 @@ import static fj.data.Option.some;
 import static fj.data.TreeMap.iterableTreeMap;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-/**
- * Created by MarkPerry on 11/01/2015.
- */
 public class TreeMapTest {
 
     @Test

@@ -1,18 +1,16 @@
 
-Current Release Process
-=======================
+Release Process
+===============
 
 Go through the issues and pull requests and set the Label and Milestone field.  Add information to /etc/release-notes/release-notes-<version>.adoc.
 
-Update build.gradle:
-* set isSnapshot to false
-* set useRetroLambda to true
-
 Update gradle.properties:
+* set isSnapshot to false
 * Set signingEnabled to true
 
+
 Run the build command:
-gradlew clean build upload
+gradlew clean build publishAllPublicationsToMavenRepository
 
 Login to Sonatype and verify the release:
 * Login to https://oss.sonatype.org
@@ -20,12 +18,13 @@ Login to Sonatype and verify the release:
 * Tick the release and click Close
 * Wait until closed
 * Tick the release and click Release
+* It takes ~24 hours for Sonatype to sync to Maven Central where it should appear
 
 Commit changes
 
 Increase the version:
-* Edit build.gradle: update isSnapshot to true, increase fjBaseVersion, update fjConsumeVersion, update useRetroLambda.
-* Edit gradle.properties: set signingEnabled to false
+* Edit build.gradle: increase fjBaseVersion, update fjConsumeVersion.
+* Edit gradle.properties: set signingEnabled to false, set isSnapshot to true
 
 Commit changes and push.  Notes that CI builds using Travis and Jenkins will fail with the release due to lack of configured signing.
 
@@ -35,9 +34,75 @@ Create tag:
 
 Create the next version of the release notes with empty fields using the template.
 
-Copy the generated javadoc for each component to the website repositories' master branch under /javadoc/<version>.  Commit the javadoc and push.
+Copy the generated javadoc for each component to the website repositories' master branch, see https://github.com/functionaljava/functionaljava.github.io, under /javadoc/<version>.  Copy:
+- core to functionaljava
+- java-core to functionaljava-java-core
+- quickcheck to functionaljava-quickcheck
+
+Commit the javadoc and push.
 
 Update the website and Github README.adoc.  This includes adding any features to the home page and features page.  Updating the doc page with javadoc links.  Update the download page with a link to the latest release notes.
 
 Send a message to the group and social media about the release, TODO.
+
+Setup Sonatype
+======================
+You need to be able to login to https://oss.sonatype.org.  Register or check your login details.
+
+Create/edit the file %UserProfile%\.gradle\gradle.properties, set the values below:
+
+sonatypeUsername = <user>
+sonatypePassword = <pwd>
+
+
+Setup Artifact Signing
+======================
+The below text is a summary from https://gist.github.com/phit/bd3c6d156a2fa5f3b1bc15fa94b3256c.
+
+As of 2022-02-11, for Windows download Gpg4win 3.1.16 from https://files.gpg4win.org/.
+
+Open a command prompt and run "gpg --gen-key" and follow the prompts.
+
+Get your key id by running: "gpg --list-key"
+
+Example output:
+
+gpg: checking the trustdb
+gpg: marginals needed: 3  completes needed: 1  trust model: pgp
+gpg: depth: 0  valid:   1  signed:   0  trust: 0-, 0q, 0n, 0m, 0f, 1u
+gpg: next trustdb check due at 2019-06-17
+C:/Users/phit/AppData/Roaming/gnupg/pubring.kbx
+-----------------------------------------------
+pub   rsa2048 2017-06-17 [SC] [expires: 2019-06-17]
+      77273D57FA5140E5A91905087A1B92B81840D019
+uid           [ultimate] phit@hush.com
+sub   rsa2048 2017-06-17 [E] [expires: 2019-06-17]
+
+In this case we only have one key, 77273D57FA5140E5A91905087A1B92B81840D019 or short* 1840D019 which is basically just the last 8 characters of the long ID.
+
+Export the key using "gpg --export-secret-key <key> >%UserProfile%\secring.gpg"
+
+Create the file %UserProfile%\.gradle\gradle.properties, set the values below:
+
+signing.keyId=XXXXXXXX
+signing.password=mypassword
+signing.secretKeyRingFile=path/to/secring.gpg
+
+Upload your key
+
+C:\repos\functionaljava>gpg --list-key
+C:/Users/maper/AppData/Roaming/gnupg/pubring.kbx
+------------------------------------------------
+pub   rsa3072 2021-02-12 [SC] [expires: 2023-02-12]
+      E86A4EC34F25A9CF6118582A7985AAE03F41B2F9
+uid           [ultimate] Mark Perry <maperry78@yahoo.com.au>
+sub   rsa3072 2021-02-12 [E] [expires: 2023-02-12]
+
+
+C:\repos\functionaljava>gpg --keyserver hkp://keyserver.ubuntu.com --send-keys E86A4EC34F25A9CF6118582A7985AAE03F41B2F9
+gpg: sending key 7985AAE03F41B2F9 to hkp://keyserver.ubuntu.com
+
+
+gradle upload (takes about 3 mins)
+
 

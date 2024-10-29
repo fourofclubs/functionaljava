@@ -1,6 +1,6 @@
 = Functional Java
 
-image:https://travis-ci.org/functionaljava/functionaljava.svg?branch=master["Build Status", link="https://travis-ci.org/functionaljava/functionaljava"]
+image:https://travis-ci.org/functionaljava/functionaljava.svg?branch=master["Build Status", link="https://app.travis-ci.com/github/functionaljava/functionaljava"]
 image:https://codecov.io/gh/functionaljava/functionaljava/branch/master/graph/badge.svg["Code Coverage", link="https://codecov.io/gh/functionaljava/functionaljava"]
 image:https://badges.gitter.im/functionaljava/functionaljava.svg[link="https://gitter.im/functionaljava/functionaljava?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge"]
 
@@ -8,7 +8,7 @@ image::http://www.functionaljava.org/img/logo-600x144.png[]
 
 Functional Java is an open source library facilitating functional programming in Java. The library implements numerous basic and advanced programming abstractions that assist composition oriented development. Functional Java also serves as a platform for learning functional programming concepts by introducing these concepts using a familiar language.
 
-The library is intended for use in production applications and is thoroughly tested using the technique of automated specification-based testing with ScalaCheck and Functional Java's quickcheck module. Functional Java is compiled with Java 8 targeting Java 7 bytecode. The use of lambdas within the project are backported with the Retro Lambda library, supporting Java versions 6 to 8.
+The library is intended for use in production applications and is thoroughly tested using the technique of automated specification-based testing with ScalaCheck and Functional Java's quickcheck module.
 
 Functional Java provides abstractions for the following types:
 
@@ -22,8 +22,9 @@ Important URLs for the project are:
 
 * Website, http://www.functionaljava.org
 * Website repository, http://github.com/functionaljava/functionaljava.github.io
-* Travis continuous integration build, https://travis-ci.org/functionaljava/functionaljava
-* Sonatype Repository, https://oss.sonatype.org/content/groups/public/org/functionaljava/
+* Travis continuous integration build, https://app.travis-ci.com/github/functionaljava/functionaljava
+* Sonatype repository, https://oss.sonatype.org/content/groups/public/org/functionaljava/
+* Maven Central repository, https://mvnrepository.com/artifact/org.functionaljava/functionaljava
 
 == Downloading
 
@@ -31,16 +32,15 @@ The recommended way to download and use the project is through your build tool.
 
 The Functional Java artifact is published to Maven Central using the group `org.functionaljava` with three published artifacts:
 
-* the core library (`functionaljava` or `functionaljava_1.8` if you use Java 8+)
-* Java 8 specific support (`functionaljava-java8`)
-* property based testing (`functionaljava-quickcheck` or `functionaljava-quickcheck_1.8` if you use Java 8+)
+* the core library (`functionaljava`)
+* property based testing (`functionaljava-quickcheck`)
+* a small amount of Java 8 support (`functionaljava-java-core`)
 
-The latest stable version is `4.8`.  This can be added to your Gradle project by adding the dependencies:
+The latest stable version is `5.0`.  This can be added to your Gradle project by adding the dependencies:
 ----
-compile "org.functionaljava:functionaljava:4.8"
-compile "org.functionaljava:functionaljava-java8:4.8"
-compile "org.functionaljava:functionaljava-quickcheck:4.8"
-compile "org.functionaljava:functionaljava-java-core:4.8"
+compile "org.functionaljava:functionaljava:5.0"
+compile "org.functionaljava:functionaljava-quickcheck:5.0"
+compile "org.functionaljava:functionaljava-java-core:5.0"
 ----
 
 and in Maven:
@@ -48,34 +48,27 @@ and in Maven:
 <dependency>
     <groupId>org.functionaljava</groupId>
     <artifactId>functionaljava</artifactId>
-    <version>4.8</version>
-</dependency>
-<dependency>
-    <groupId>org.functionaljava</groupId>
-    <artifactId>functionaljava-java8</artifactId>
-    <version>4.8</version>
+    <version>5.0</version>
 </dependency>
 <dependency>
     <groupId>org.functionaljava</groupId>
     <artifactId>functionaljava-quickcheck</artifactId>
-    <version>4.8</version>
+    <version>5.0</version>
 </dependency>
 <dependency>
     <groupId>org.functionaljava</groupId>
     <artifactId>functionaljava-java-core</artifactId>
-    <version>4.8</version>
+    <version>5.0</version>
 </dependency>
 ----
 
 == Building
 
-FunctionalJava uses the Retro Lambda project to backport Java 8 lambdas to Java 6 bytecode.  This requires access to both JDK 6 and 8.  The build system requires the environment variables `JAVA6_HOME` and `JAVA8_HOME` to refer to the appropriate directories.
-
-Building is done using Gradle 2.13.  In the root directory run:
+Building is done using Java 8 and Gradle 7.4.  In the root directory run:
 ----
 ./gradlew
 ----
-This requires access to Java and will download the Gradle build tool and necessary dependencies and build FunctionalJava.
+This requires access to Java 8 and will download the Gradle build tool and necessary dependencies and build FunctionalJava.
 
 == Features
 
@@ -122,3 +115,7 @@ A more complete description of the features mentioned above are:
 == License
 
 link:etc/LICENCE[The Functional Java license] uses the BSD 3 license (3-clause license) available at https://en.wikipedia.org/wiki/BSD_licenses[].
+
+== Release Notes
+
+For release notes for each version, see the directory link:etc/release-notes.

@@ -12,8 +12,6 @@ import static fj.function.Characters.isWhitespace;
 
 /**
  * Curried string functions.
- *
- * @version %build.number%
  */
 public final class Strings {
   private Strings() {
@@ -96,6 +94,10 @@ public final class Strings {
 
   public static F<List<String>, String> unlines() {
     return Strings::unlines;
+  }
+
+  public static F<String, String> reverse() {
+    return s -> new StringBuilder(s).reverse().toString();
   }
 
 }

@@ -6,11 +6,8 @@ import static fj.data.Option.none;
 import static fj.data.Option.some;
 import static fj.Ord.intOrd;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
-/**
- * Created by MarkPerry on 18/08/2015.
- */
 public class SetTest {
 
 	@Test

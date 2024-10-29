@@ -4,11 +4,9 @@ import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
-/**
- * Created by MarkPerry on 11/06/2015.
- */
+
 public class LazyStringTest {
 
     @Test

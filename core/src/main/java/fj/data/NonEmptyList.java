@@ -14,8 +14,6 @@ import static fj.data.Option.somes;
 
 /**
  * Provides an in-memory, immutable, singly linked list with total <code>head</code> and <code>tail</code>.
- *
- * @version %build.number%
  */
 public final class NonEmptyList<A> implements Iterable<A> {
   /**
@@ -169,9 +167,10 @@ public final class NonEmptyList<A> implements Iterable<A> {
    * @return a NonEmptyList of the sublists of this list.
    */
   public NonEmptyList<NonEmptyList<A>> sublists() {
+    F<Stream<A>, Option<NonEmptyList<A>>> f = s -> NonEmptyList.fromList(Conversions.<A>Stream_List().f(s));
     return fromList(
         somes(toList().toStream().substreams()
-            .map(F1Functions.o(NonEmptyList::fromList, Conversions.Stream_List())).toList())).some();
+            .map(f).toList())).some();
   }
 
   /**

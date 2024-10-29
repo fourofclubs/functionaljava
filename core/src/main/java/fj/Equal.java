@@ -22,8 +22,6 @@ import static fj.Function.curry;
 
 /**
  * Tests for equality between two objects.
- *
- * @version %build.number%
  */
 public final class Equal<A> {
 
@@ -355,6 +353,14 @@ public final class Equal<A> {
         a1 -> Either.either_(eaDef.equal(a1), (B __) -> false),
         b1 -> Either.either_((A __)-> false, ebDef.equal(b1))
     ));
+  }
+
+  public static <A, B, C> Equal<Either3<A, B, C>> either3Equal(Equal<A> ea, Equal<B> eb, Equal<C> ec) {
+    return equalDef((e1, e2) ->
+      optionEqual(ea).eq(e1.leftOption(), e2.leftOption()) &&
+      optionEqual(eb).eq(e1.middleOption(), e2.middleOption()) &&
+      optionEqual(ec).eq(e1.rightOption(), e2.rightOption())
+    );
   }
 
   public static <I, A> Equal<Result<I, A>> resultEqual(final Equal<A> ea, final Equal<I> ei) {

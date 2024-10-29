@@ -1,11 +1,9 @@
 package fj.data;
 
 import fj.F;
-import fj.F1Functions;
 
 /**
  * The Reader monad (also called the function monad, so equivalent to the idea of F).
- * Created by MarkPerry on 7/07/2014.
  */
 public class Reader<A, B> {
 
@@ -32,7 +30,7 @@ public class Reader<A, B> {
 	}
 
 	public final <C> Reader<A, C> map(F<B, C> f) {
-		return unit(F1Functions.andThen(function, f));
+		return unit(function.andThen(f));
 	}
 
 	public final <C> Reader<A, C> andThen(F<B, C> f) {

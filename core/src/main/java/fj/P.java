@@ -4,8 +4,6 @@ import static fj.Unit.unit;
 
 /**
  * Functions across products.
- *
- * @version %build.number%
  */
 public final class P {
   private P() {
@@ -64,6 +62,13 @@ public final class P {
   public static <A> P1<A> softMemo(F0<A> f) {
     return new P1.SoftReferenceMemo<>(f);
   }
+
+    /**
+     * Convert a F0 into a P1, using weak call-by-need semantic using {@link #weakMemo(F0)}.
+     */
+    public static <A> P1<A> memo(F0<A> f) {
+        return weakMemo(f);
+    }
 
   /**
    * Convert a F0 into a P1, using call-by-name semantic:

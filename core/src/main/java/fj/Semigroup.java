@@ -13,21 +13,16 @@ import fj.data.Stream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import static fj.F1Functions.dimap;
 import static fj.Function.constant;
 import static fj.Function.identity;
 import static fj.Monoid.*;
 import static fj.data.DList.listDList;
-import static fj.data.Option.none;
-import static fj.data.Option.some;
 
 /**
  * Implementations must satisfy the law of associativity:
  * <ul>
  * <li><em>Associativity</em>; forall x. forall y. forall z. sum(sum(x, y), z) == sum(x, sum(y, z))</li>
  * </ul>
- *
- * @version %build.number%
  */
 public final class Semigroup<A> {
 
@@ -193,7 +188,7 @@ public final class Semigroup<A> {
 
       @Override
       public F<B, B> prepend(B b) {
-        return dimap(def.prepend(g.f(b)), g, f);
+        return def.prepend(g.f(b)).dimap(g, f);
       }
 
       @Override
@@ -296,21 +291,9 @@ public final class Semigroup<A> {
   public static final Semigroup<Integer> intAdditionSemigroup = intAdditionMonoid.semigroup();
 
   /**
-   * @deprecated Since 4.7. Due to rounding errors, addition of doubles does not comply with monoid laws
-   */
-  @Deprecated
-  public static final Semigroup<Double> doubleAdditionSemigroup = semigroupDef((d1, d2) -> d1 + d2);
-
-  /**
    * A semigroup that multiplies integers.
    */
   public static final Semigroup<Integer> intMultiplicationSemigroup = intMultiplicationMonoid.semigroup();
-
-  /**
-   * @deprecated Since 4.7. Due to rounding errors, addition of doubles does not comply with monoid laws
-   */
-  @Deprecated
-  public static final Semigroup<Double> doubleMultiplicationSemigroup = semigroupDef((d1, d2) -> d1 * d2);
 
   /**
    * A semigroup that yields the maximum of integers.
@@ -521,17 +504,6 @@ public final class Semigroup<A> {
         return nea.append(tail);
       }
     });
-  }
-
-  /**
-   * A semigroup for optional values.
-   * @deprecated since 4.7. Use {@link #firstOptionSemigroup()}.
-   *
-   * @return A semigroup for optional values.
-   */
-  @Deprecated
-  public static <A> Semigroup<Option<A>> optionSemigroup() {
-    return firstOptionSemigroup();
   }
 
   /**

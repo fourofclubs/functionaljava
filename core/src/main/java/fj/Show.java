@@ -27,8 +27,6 @@ import static fj.data.Stream.single;
 
 /**
  * Renders an object for display.
- *
- * @version %build.number%
  */
 public final class Show<A> {
   private final F<A, Stream<Character>> f;
@@ -254,6 +252,16 @@ public final class Show<A> {
     return show(e -> e.isLeft() ?
            fromString("Left(").append(sa.f.f(e.left().value())).append(single(')')) :
            fromString("Right(").append(sb.f.f(e.right().value())).append(single(')')));
+  }
+
+  public static <A, B, C> Show<Either3<A, B, C>> either3Show(final Show<A> sa, final Show<B> sb, final Show<C> sc) {
+    return show(e ->
+      e.either(
+        a -> fromString("Left(").append(sa.f.f(a)).append(single(')')),
+        b -> fromString("Middle(").append(sb.f.f(b)).append(single(')')),
+        c -> fromString("Right(").append(sc.f.f(c)).append(single(')'))
+      )
+    );
   }
 
   /**

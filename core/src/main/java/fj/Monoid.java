@@ -1,7 +1,5 @@
 package fj;
 
-import static fj.F1Functions.dimap;
-
 import fj.data.*;
 
 import static fj.Function.*;
@@ -24,8 +22,6 @@ import java.math.BigDecimal;
  * <li><em>Right Identity</em>; forall x. sum(x, zero()) == x</li>
  * <li><em>Associativity</em>; forall x y z. sum(sum(x, y), z) == sum(x, sum(y, z))</li>
  * </ul>
- *
- * @version %build.number%
  */
 public final class Monoid<A> {
 
@@ -146,7 +142,7 @@ public final class Monoid<A> {
 
       @Override
       public F<B, B> prepend(B b) {
-        return dimap(def.prepend(g.f(b)), g, f);
+        return def.prepend(g.f(b)).dimap(g, f);
       }
 
       @Override
@@ -469,20 +465,6 @@ public final class Monoid<A> {
   }
 
   /**
-   * Constructs a monoid from the given semigroup and zero value, which must follow the monoidal laws.
-   * @deprecated since 4.7. Use {@link #monoidDef(Semigroup.Definition, Object)} or {@link Semigroup#monoid(Object)} instead.
-   *
-   * @param s    The semigroup for the monoid.
-   * @param zero The zero for the monoid.
-   * @return A monoid instance that uses the given sun function and zero value.
-   */
-  @Deprecated
-  public static <A> Monoid<A> monoid(final Semigroup<A> s, final A zero) {
-    return s.monoid(zero);
-  }
-
-
-  /**
    * A monoid that adds integers.
    */
   public static final Monoid<Integer> intAdditionMonoid = monoidDef(new Definition<Integer>() {
@@ -530,18 +512,6 @@ public final class Monoid<A> {
       return n <= 0 ? 1 : (int) StrictMath.pow(integer.doubleValue(), n);
     }
   });
-
-  /**
-   * @deprecated Since 4.7. Due to rounding errors, addition of doubles does not comply with monoid laws
-   */
-  @Deprecated
-  public static final Monoid<Double> doubleAdditionMonoid = monoidDef((d1, d2) -> d1 + d2, 0.0);
-
-  /**
-   * @deprecated Since 4.7. Due to rounding errors, multiplication of doubles does not comply with monoid laws
-   */
-  @Deprecated
-  public static final Monoid<Double> doubleMultiplicationMonoid = monoidDef((d1, d2) -> d1 * d2, 1.0);
 
   /**
    * A monoid that adds big integers.
@@ -892,17 +862,6 @@ public final class Monoid<A> {
   }
 
   /**
-   * A monoid for options.
-   * @deprecated since 4.7. Use {@link #firstOptionMonoid()}.
-   *
-   * @return A monoid for options.
-   */
-  @Deprecated
-  public static <A> Monoid<Option<A>> optionMonoid() {
-    return firstOptionMonoid();
-  }
-
-  /**
    * A monoid for options that take the first available value.
    *
    * @return A monoid for options that take the first available value.
@@ -1121,18 +1080,6 @@ public final class Monoid<A> {
         return a1.intersect(a2);
       }
     });
-  }
-
-  /**
-   * A monoid for the maximum of elements with ordering o.
-   * @deprecated since 4.7. Use {@link Ord#maxMonoid(Object)}
-   *
-   * @param o An ordering of elements.
-   * @param zero The minimum element.
-   */
-  @Deprecated
-  public static <A> Monoid<A> ordMaxMonoid(final Ord<A> o, final A zero) {
-    return o.maxMonoid(zero);
   }
 
 }

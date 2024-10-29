@@ -1,59 +1,33 @@
 package fj.data;
 
+import fj.*;
+import fj.control.Trampoline;
+import fj.control.parallel.*;
+import fj.data.optic.Optional;
+import fj.data.optic.*;
+import fj.data.vector.V2;
+import fj.function.Effect1;
+
+import java.lang.Class;
+import java.util.*;
+
 import static fj.Bottom.error;
-
-import fj.Equal;
-import fj.F2Functions;
-import fj.Hash;
-import fj.Monoid;
-import fj.Ord;
-import fj.Ordering;
-import fj.P;
-import fj.P1;
-import fj.Semigroup;
-import fj.Show;
-import fj.Unit;
-import fj.P2;
-import fj.F0;
-import fj.F;
-import fj.F2;
-import fj.Function;
-
 import static fj.Function.*;
-import static fj.P.p;
-import static fj.P.p2;
+import static fj.Ord.intOrd;
+import static fj.Ordering.GT;
+import static fj.P.*;
 import static fj.Unit.unit;
 import static fj.data.Array.mkArray;
+import static fj.data.Either.*;
 import static fj.data.List.Buffer.*;
-import static fj.data.Option.none;
-import static fj.data.Option.some;
+import static fj.data.Option.*;
 import static fj.data.optic.Optional.optional;
 import static fj.data.optic.Prism.prism;
 import static fj.data.vector.V.v;
 import static fj.function.Booleans.not;
-import static fj.Ordering.GT;
-import static fj.Ord.intOrd;
-
-
-import fj.control.Trampoline;
-import fj.control.parallel.Promise;
-import fj.control.parallel.Strategy;
-import fj.data.optic.Optional;
-import fj.data.optic.PTraversal;
-import fj.data.optic.Prism;
-import fj.data.optic.Traversal;
-import fj.data.vector.V2;
-import fj.function.Effect1;
-
-import java.util.AbstractCollection;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
 
 /**
  * Provides an in-memory, immutable, singly linked list.
- *
- * @version %build.number%
  */
 public abstract class List<A> implements Iterable<A> {
   private List() {
@@ -110,19 +84,6 @@ public abstract class List<A> implements Iterable<A> {
     return this instanceof Cons;
   }
 
-  /**
-   * Performs a reduction on this list using the given arguments.
-   * @deprecated As of release 4.5, use {@link #uncons}
-   *
-   * @param nil  The value to return if this list is empty.
-   * @param cons The function to apply to the head and tail of this list if it is not empty.
-   * @return A reduction on this list.
-   */
-  @Deprecated
-  public final <B> B list(final B nil, final F<A, F<List<A>, B>> cons) {
-    return uncons(uncurryF2(cons), nil);
-  }
-
   public final <B> B uncons(final F2<A, List<A>, B> cons, final B nil) {
     return isEmpty() ? nil : cons.f(head(), tail());
   }
@@ -148,19 +109,7 @@ public abstract class List<A> implements Iterable<A> {
   }
 
   /**
-   * Returns an option projection of this list; <code>None</code> if empty, or the first element in
-   * <code>Some</code>.  Equivalent to {@link #headOption()}.
-   * @deprecated As of release 4.5, use {@link #headOption()}
-   * @return An option projection of this list.
-   */
-  @Deprecated
-  public final Option<A> toOption() {
-    return headOption();
-
-  }
-
-  /**
-   * Returns the head of the list, if any.  Equivalent to {@link #toOption()} .
+   * Returns the head of the list, if any.
    *
    * @return The optional head of the list.
    */
@@ -207,19 +156,6 @@ public abstract class List<A> implements Iterable<A> {
       x = x.tail();
     }
     return a;
-  }
-
-  /**
-   * To be removed in future release:
-   * affectation of the result of this method to a non generic array
-   * will result in runtime error (ClassCastException).
-   *
-   * @deprecated As of release 4.6, use {@link #array(Class)}.
-   */
-  @SuppressWarnings("unchecked")
-  @Deprecated
-  public final A[] toJavaArray() {
-    return (A[]) toArrayObject();
   }
 
   /**
@@ -604,61 +540,315 @@ public abstract class List<A> implements Iterable<A> {
     return bind(c);
   }
 
-    /**
-     * Traverses through the List with the given function
-     *
-     * @param f The function that produces Option value
-     * @return  none if applying f returns none to any element of the list or f mapped list in some .
-     */
-    public final <B> Option<List<B>> traverseOption(final F<A, Option<B>> f) {
-        return foldRight(
-                (a, obs) -> f.f(a).bind(o -> obs.map(os -> os.cons(o))),
-                some(List.nil())
-        );
-    }
+  /**
+   * Sequence the given list and collect the output on the right side of an either.
+   *
+   * @param list the given list
+   * @param <B>  the type of the right value
+   * @param <L>  the type of the left value
+   * @return the either
+   */
+  public static final <L, B> Either<L, List<B>> sequenceEither(final List<Either<L, B>> list) {
+    return list.traverseEither(identity());
+  }
 
-    /**
-     * Traverse through the List with given function.
-     *
-     * @param f The function that produces Either value.
-     * @return  error in left or f mapped list in right.
-     */
-    public final <B, E> Either<E, List<B>> traverseEither(final F<A, Either<E, B>> f) {
-        return foldRight(
-                (a, acc) -> f.f(a).right().bind(e -> acc.right().map(es -> es.cons(e))),
-                Either.right(List.nil())
-        );
-    }
+  /**
+   * Sequence the given list and collect the output on the left side of an either.
+   *
+   * @param list the given list
+   * @param <R>  the type of the right value
+   * @param <B>  the type of the left value
+   * @return the either
+   */
+  public static final <R, B> Either<List<B>, R> sequenceEitherLeft(final List<Either<B, R>> list) {
+    return list.traverseEitherLeft(identity());
+  }
 
-    public final <B> Stream<List<B>> traverseStream(final F<A, Stream<B>> f) {
-        return foldRight(
-                (a, acc) -> f.f(a).bind(s -> acc.map(ss -> ss.cons(s))),
-                Stream.nil()
-        );
-    }
+  /**
+   * Sequence the given list and collect the output on the right side of an either.
+   *
+   * @param list the given list
+   * @param <B>  the type of the right value
+   * @param <L>  the type of the left value
+   * @return the either
+   */
+  public static final <L, B> Either<L, List<B>> sequenceEitherRight(final List<Either<L, B>> list) {
+    return list.traverseEitherRight(identity());
+  }
 
-    public final <B> P1<List<B>> traverseP1(final F<A, P1<B>> f){
-        return foldRight(
-                (a, acc) -> f.f(a).bind(b -> acc.map(bs -> bs.cons(b))),
-                p(List.nil())
-        );
-    }
+  /**
+   * Sequence the given list and collect the output as a function.
+   *
+   * @param list the given list
+   * @param <C>  the type of the input value
+   * @param <B>  the type of the output value
+   * @return the either
+   */
+  public static final <C, B> F<C, List<B>> sequenceF(final List<F<C, B>> list) {
+    return list.traverseF(identity());
+  }
 
-    public final <B> IO<List<B>> traverseIO(F<A, IO<B>> f) {
-        return this.foldRight(
-                (a, acc) -> IOFunctions.bind(f.f(a), b -> IOFunctions.map(acc, bs -> bs.cons(b))),
-                IOFunctions.unit(List.nil())
-        );
-    }
+  /**
+   * Sequence the given list and collect the output as an IO.
+   *
+   * @param list the given list
+   * @param <B>  the type of the IO value
+   * @return the IO
+   */
+  public static final <B> IO<List<B>> sequenceIO(final List<IO<B>> list) {
+    return list.traverseIO(identity());
+  }
 
+  /**
+   * Sequence the given list and collect the output as an list.
+   *
+   * @param list the given list
+   * @param <B>  the type of the list value
+   * @return the list
+   */
+  public static final <B> List<List<B>> sequenceList(final List<List<B>> list) {
+    return list.traverseList(identity());
+  }
+
+  /**
+   * Sequence the given list and collect the output as an list.
+   *
+   * @param list the given list
+   * @param <B>  the type of the list value
+   * @return the list
+   */
+  public static final <B> Option<List<B>> sequenceOption(final List<Option<B>> list) {
+    return list.traverseOption(identity());
+  }
+
+  /**
+   * Sequence the given list and collect the output as a P1.
+   *
+   * @param list the given list
+   * @param <B>  the type of the P1 value
+   * @return the P1
+   */
+  public static final <B> P1<List<B>> sequenceP1(final List<P1<B>> list) {
+    return list.traverseP1(identity());
+  }
+
+  /**
+   * Sequence the given list and collect the output as a seq.
+   *
+   * @param list the given list
+   * @param <B>  the type of the seq value
+   * @return the seq
+   */
+  public static final <B> Seq<List<B>> sequenceSeq(final List<Seq<B>> list) {
+    return list.traverseSeq(identity());
+  }
+
+  /**
+   * Sequence the given list and collect the output as a set; use the given ord to order the set.
+   *
+   * @param ord  the given ord
+   * @param list the given list
+   * @param <B>  the type of the set value
+   * @return the either
+   */
+  public static final <B> Set<List<B>> sequenceSet(final Ord<B> ord, final List<Set<B>> list) {
+    return list.traverseSet(ord, identity());
+  }
+
+  /**
+   * Sequence the given list and collect the output as a stream.
+   *
+   * @param list the given list
+   * @param <B>  the type of the stream value
+   * @return the stream
+   */
+  public static final <B> Stream<List<B>> sequenceStream(final List<Stream<B>> list) {
+    return list.traverseStream(identity());
+  }
+
+  /**
+   * Sequence the given list and collect the output as a trampoline.
+   *
+   * @param list the given trampoline
+   * @param <B>  the type of the stream value
+   * @return the stream
+   */
+  public static final <B> Trampoline<List<B>> sequenceTrampoline(final List<Trampoline<B>> list) {
+    return list.traverseTrampoline(identity());
+  }
+
+  /**
+   * Sequence the given list and collect the output as a validation; use the given semigroup to reduce the errors.
+   *
+   * @param semigroup the given semigroup
+   * @param list      the given list
+   * @param <E>       the type of the failure value
+   * @param <B>       the type of the success value
+   * @return the validation
+   */
+  public static final <E, B> Validation<E, List<B>> sequenceValidation(final Semigroup<E> semigroup, final List<Validation<E, B>> list) {
+    return list.traverseValidation(semigroup, identity());
+  }
+
+  /**
+   * Traverse through the List with given function.
+   *
+   * @param f The function that produces Either value.
+   * @return error in left or f mapped list in right.
+   */
+  public final <B, E> Either<E, List<B>> traverseEither(final F<A, Either<E, B>> f) {
+    return foldRight(
+        (a, acc) -> f.f(a).right().bind(e -> acc.right().map(es -> es.cons(e))),
+        Either.right(List.nil())
+    );
+  }
+
+  /**
+   * Traverse this list with the given function and collect the output on the left side of an either.
+   *
+   * @param f   the given function
+   * @param <R> the type of the left value
+   * @param <B> the type of the right value
+   * @return the either
+   */
+  public final <R, B> Either<List<B>, R> traverseEitherLeft(final F<A, Either<B, R>> f) {
+    return foldRight(
+        (element, either) -> f.f(element).left().bind(elementInner -> either.left().map(list -> list.cons(elementInner))),
+        left(nil()));
+  }
+
+  /**
+   * Traverse this list with the given function and collect the output on the right side of an either.
+   *
+   * @param f   the given function
+   * @param <L> the type of the left value
+   * @param <B> the type of the right value
+   * @return the either
+   */
+  public final <L, B> Either<L, List<B>> traverseEitherRight(final F<A, Either<L, B>> f) {
+    return foldRight(
+        (element, either) -> f.f(element).right().bind(elementInner -> either.right().map(list -> list.cons(elementInner))),
+        right(nil()));
+  }
+
+  /**
+   * Traverse this list with the given function and collect the output as a function.
+   *
+   * @param f   the given function
+   * @param <C> the type of the input value
+   * @param <B> the type of the output value
+   * @return the function
+   */
   public final <C, B> F<C, List<B>> traverseF(F<A, F<C, B>> f) {
     return this.foldRight(
         (a, acc) -> Function.bind(acc,
             (bs) -> Function.compose(bs::cons, f.f(a))),
         constant(List.nil())
-        );
+    );
   }
 
+  /**
+   * Traverse this list with the given function and collect the output as an IO.
+   *
+   * @param f   the given function
+   * @param <B> the type of the IO value
+   * @return the IO
+   */
+  public final <B> IO<List<B>> traverseIO(F<A, IO<B>> f) {
+    return this.foldRight(
+        (a, acc) -> IOFunctions.bind(f.f(a), b -> IOFunctions.map(acc, bs -> bs.cons(b))),
+        IOFunctions.unit(List.nil())
+    );
+  }
+
+  /**
+   * Traverse this list with the given function and collect the output as a list.
+   *
+   * @param f   the given function
+   * @param <B> the type of the list value
+   * @return the list
+   */
+  public final <B> List<List<B>> traverseList(final F<A, List<B>> f) {
+    return foldRight(
+        (a, acc) -> f.f(a).bind(b -> acc.map(bs -> bs.cons(b))),
+        single(List.nil()));
+  }
+
+  /**
+   * Traverses through the List with the given function
+   *
+   * @param f The function that produces Option value
+   * @return none if applying f returns none to any element of the list or f mapped list in some .
+   */
+  public final <B> Option<List<B>> traverseOption(final F<A, Option<B>> f) {
+    return foldRight(
+        (a, obs) -> f.f(a).bind(o -> obs.map(os -> os.cons(o))),
+        some(List.nil())
+    );
+  }
+
+  /**
+   * Traverse this list with the given function and collect the output as a p1.
+   *
+   * @param f   the given function
+   * @param <B> the type of the p1 value
+   * @return the p1
+   */
+  public final <B> P1<List<B>> traverseP1(final F<A, P1<B>> f) {
+    return foldRight(
+        (a, acc) -> f.f(a).bind(b -> acc.map(bs -> bs.cons(b))),
+        p(List.nil())
+    );
+  }
+
+  /**
+   * Traverse this list with the given function and collect the output as a seq.
+   *
+   * @param f   the given function
+   * @param <B> the type of the seq value
+   * @return the seq
+   */
+  public final <B> Seq<List<B>> traverseSeq(final F<A, Seq<B>> f) {
+    return foldRight(
+        (element, seq) -> f.f(element).bind(elementInner -> seq.map(list -> list.cons(elementInner))),
+        Seq.single(nil()));
+  }
+
+  /**
+   * Traverse this list with the given function and collect the output as a set; use the given ord to order the set.
+   *
+   * @param ord the given ord
+   * @param f   the given function
+   * @param <B> the type of the set value
+   * @return the set
+   */
+  public final <B> Set<List<B>> traverseSet(final Ord<B> ord, final F<A, Set<B>> f) {
+    final Ord<List<B>> listOption = Ord.listOrd(ord);
+    return foldRight(
+        (element, set) -> f.f(element).bind(listOption, elementInner -> set.map(listOption, list -> list.cons(elementInner))),
+        Set.single(listOption, nil()));
+  }
+
+  /**
+   * Traverse this list with the given function and collect the output as a stream.
+   *
+   * @param f   the given function
+   * @param <B> the type of the stream value
+   * @return the stream
+   */
+  public final <B> Stream<List<B>> traverseStream(final F<A, Stream<B>> f) {
+    return foldRight(
+        (a, acc) -> f.f(a).bind(s -> acc.map(ss -> ss.cons(s))),
+        Stream.single(nil()));
+  }
+
+  /**
+   * Traverse this list with the given function and collect the output as a trampoline.
+   *
+   * @param f   the given function
+   * @param <B> the type of the trampoline value
+   * @return the trampoline
+   */
   public final <B> Trampoline<List<B>> traverseTrampoline(final F<A, Trampoline<B>> f) {
     return foldRight(
         (a, acc) -> f.f(a).bind(b -> acc.map(bs -> bs.cons(b))),
@@ -671,12 +861,15 @@ public abstract class List<A> implements Iterable<A> {
         Promise.promise(Strategy.idStrategy(), p(List.nil())));
   }
 
-  public final <B> List<List<B>> traverseList(final F<A, List<B>> f) {
-    return foldRight(
-        (a, acc) -> f.f(a).bind(b -> acc.map(bs -> bs.cons(b))),
-        single(List.nil()));
-  }
-
+  /**
+   * Traverse this list with the given function and collect the output as a validation; use the given semigroup to reduce the errors.
+   *
+   * @param s   the given semigroup
+   * @param f   the given function
+   * @param <E> the type of the failure value
+   * @param <B> the type of the success value
+   * @return the validation
+   */
   public final <E, B> Validation<E, List<B>> traverseValidation(Semigroup<E> s, final F<A, Validation<E, B>> f) {
     return Validation.sequence(s, map(f));
   }
@@ -736,7 +929,7 @@ public abstract class List<A> implements Iterable<A> {
    * @return A Trampoline containing the final result after the right-fold reduction.
    */
   public final <B> Trampoline<B> foldRightC(final F2<A, B, B> f, final B b) {
-    return Trampoline.suspend(() -> isEmpty() ? Trampoline.pure(b) : tail().foldRightC(f, b).map(F2Functions.f(f, head())));
+    return Trampoline.suspend(() -> isEmpty() ? Trampoline.pure(b) : tail().foldRightC(f, b).map(f.f(head())));
   }
 
   /**
@@ -1298,21 +1491,6 @@ public abstract class List<A> implements Iterable<A> {
 
   /**
    * Groups the elements of this list by a given keyFunction into a {@link TreeMap}.
-   * The ordering of the keys is determined by {@link fj.Ord#hashOrd()} (ie. Object#hasCode).
-   * This is not safe and therefore this method is deprecated.
-   *
-   * @param keyFunction The function to select the keys for the map.
-   * @return A TreeMap containing the keys with the accumulated list of matched elements.
-   *
-   * @deprecated As of release 4.7, use {@link #groupBy(F, Ord)}
-   */
-  @Deprecated
-  public final <B> TreeMap<B, List<A>> groupBy(final F<A, B> keyFunction) {
-    return groupBy(keyFunction, Ord.hashOrd());
-  }
-
-  /**
-   * Groups the elements of this list by a given keyFunction into a {@link TreeMap}.
    *
    * @param keyFunction The function to select the keys for the map.
    * @param keyOrd An order for the keys of the tree map.
@@ -1320,25 +1498,6 @@ public abstract class List<A> implements Iterable<A> {
    */
   public final <B> TreeMap<B, List<A>> groupBy(final F<A, B> keyFunction, final Ord<B> keyOrd) {
     return groupBy(keyFunction, identity(), keyOrd);
-  }
-
-  /**
-   * Groups the elements of this list by a given keyFunction into a {@link TreeMap} and transforms
-   * the matching elements with the given valueFunction. The ordering of the keys is determined by
-   * {@link fj.Ord#hashOrd()} (ie. Object#hasCode).
-   * This is not safe and therefore this method is deprecated.
-   *
-   * @param keyFunction The function to select the keys for the map.
-   * @param valueFunction The function to apply on each matching value.
-   * @return A TreeMap containing the keys with the accumulated list of matched and mapped elements.
-   *
-   * @deprecated As of release 4.7, use {@link #groupBy(F, F, Ord)}
-   */
-  @Deprecated
-  public final <B, C> TreeMap<B, List<C>> groupBy(
-      final F<A, B> keyFunction,
-      final F<A, C> valueFunction) {
-    return this.groupBy(keyFunction, valueFunction, Ord.hashOrd());
   }
 
   /**
@@ -1474,7 +1633,7 @@ public abstract class List<A> implements Iterable<A> {
   public final Option<A> maximumOption(final Ord<A> o) {
     return NonEmptyList.fromList(this).map(nel -> nel.maximum(o));
   }
-  
+
   /**
    * Returns the minimum element in this list according to the given ordering.
    *
@@ -1484,7 +1643,7 @@ public abstract class List<A> implements Iterable<A> {
   public final A minimum(final Ord<A> o) {
     return foldLeft1(o::min);
   }
-  
+
   /**
    * Returns the minimum element in this list according to the given ordering.
    *
@@ -1586,24 +1745,6 @@ public abstract class List<A> implements Iterable<A> {
   @SafeVarargs
   public static <A> List<A> arrayList(final A... as) {
     return Array.array(as).toList();
-  }
-
-  /**
-   * Constructs a list from the given Iterable.
-   * @deprecated As of release 4.5, use {@link #iterableList(Iterable)}
-   */
-  @Deprecated
-  public static <A> List<A> list(final Iterable<A> i) {
-    return iterableList(i);
-  }
-
-  /**
-   * Constructs a list from the given Iterator.
-   * @deprecated As of release 4.5, use {@link #iteratorList(Iterator)}
-   */
-  @Deprecated
-  public static <A> List<A> list(final Iterator<A> it) {
-    return iteratorList(it);
   }
 
   /**

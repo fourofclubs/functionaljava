@@ -9,6 +9,8 @@ import fj.control.Trampoline;
 import fj.data.Array;
 import fj.data.List;
 import fj.data.Option;
+import fj.data.Stream;
+import fj.data.Validation;
 import fj.function.Effect1;
 
 import static fj.Bottom.error;
@@ -319,6 +321,19 @@ public final class Gen<A> {
   }
 
   /**
+   * Transform a validation for a generator into a generator of validations: if the given validation is a failure, the
+   * generator produces that failure value; if the given validation is a success, the generator produces success values.
+   *
+   * @param gv  The validation for a generator.
+   * @param <A> the type of the value
+   * @param <E> the type of the failure
+   * @return if the given validation is a failure, the generator produces that failure value; if the given validation is a success, the generator produces success values.
+   */
+  public static <E, A> Gen<Validation<E, A>> sequence(final Validation<E, Gen<A>> gv) {
+    return gen(i -> r -> gv.map(g -> g.gen(i, r)));
+  }
+
+  /**
    * Constructs a generator that can access its construction arguments &mdash; size and random
    * generator.
    *
@@ -498,6 +513,18 @@ public final class Gen<A> {
   }
 
   /**
+   * Returns a generator of streams whose values come from the given generator.
+   *
+   * @param g   the generator to produce values from for the returned generator
+   * @param <A> the type of the generator
+   *
+   * @return A generator of streams whose values come from the given generator.
+   */
+  public static <A> Gen<Stream<A>> streamOf(final Gen<A> g) {
+    return gen(i -> r -> Stream.cons(g.gen(i, r), () -> streamOf(g).gen(i, r)));
+  }
+
+  /**
    * Returns a generator that picks one element from the given list. If the given list is empty, then the
    * returned generator will never produce a value.
    *
@@ -507,24 +534,6 @@ public final class Gen<A> {
   public static <A> Gen<A> pickOne(List<A> as) {
     // This is the fastest of the four; functionally, any of them would do
     return wordOf(1, as).map(List::head);
-  }
-
-  /**
-   * Returns a generator of lists that picks the given number of elements from the given list. If
-   * the given number is less than zero or greater than the length of the given list, then the
-   * returned generator will never produce a value.
-   * <p>
-   * Note: pick is synonymous with combinationOf
-   *
-   * @deprecated As of release 4.6, use {@link #combinationOf}
-   *
-   * @param n  The number of elements to pick from the given list.
-   * @param as The list from which to pick elements.
-   * @return A generator of lists that picks the given number of elements from the given list.
-   */
-  @Deprecated
-  public static <A> Gen<List<A>> pick(int n, List<A> as) {
-    return combinationOf(n, as);
   }
 
   /**
@@ -649,21 +658,6 @@ public final class Gen<A> {
   private static <A> Gen<List<A>> pick(Gen<List<Integer>> indexesGen, Array<A> as) {
     return indexesGen.map(indexes ->
         indexes.foldLeft((acc, index) -> cons(as.get(index), acc), List.<A>nil()).reverse());
-  }
-
-  /**
-   * Returns a generator of lists that produces some of the values of the given list.
-   * <p>
-   * Note: someOf is synonymous with someCombinationOf
-   *
-   * @deprecated As of release 4.6, use {@link #someCombinationOf}
-   *
-   * @param as The list from which to pick values.
-   * @return A generator of lists that produces some of the values of the given list.
-   */
-  @Deprecated
-  public static <A> Gen<List<A>> someOf(List<A> as) {
-    return someCombinationOf(as);
   }
 
   /**
